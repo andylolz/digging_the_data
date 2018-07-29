@@ -17,7 +17,7 @@ charity_count = scraperwiki.sqlite.execute(
 for offset in range(charity_count):
     print(offset + 1)
     item = scraperwiki.sqlite.select(
-        '* from swdata limit 1 offset {}'.format(offset))[0]
+        '* from swdata order by url limit 1 offset {}'.format(offset))[0]
     id_ = '_'.join(id_re.search(item['url']).groups())
     fname = join('scraped', id_ + '.html')
     if exists(fname):
