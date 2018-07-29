@@ -1,4 +1,4 @@
-from os.path import join
+from os.path import exists, join
 import re
 
 import requests
@@ -19,13 +19,22 @@ for offset in range(charity_count):
     item = scraperwiki.sqlite.select(
         '* from swdata limit 1 offset {}'.format(offset))[0]
     id_ = '_'.join(id_re.search(item['url']).groups())
-    r = requests.get(base_url + item['url'])
-    with open(join('scraped', id_ + '.html'), 'w') as f:
+    fname = join('scraped', id_ + '.html')
+    if exists(fname):
+        continue
+    url = base_url + item['url']
+    print(url)
+    r = requests.get(url)
+    with open(fname, 'w') as f:
         _ = f.write(r.text)
-    d_and_l = d_and_l_re.search(r.text)
-    if d_and_l:
-        item['donations_and_legacies'] = d_and_l.group(1)
-    item['income'] = income_re.search(r.text).group(1)
-    item['end_date'] = end_date_re.search(r.text).group(1)
-    print(item)
-    scraperwiki.sqlite.save(['url'], item)
+    try:
+        d_and_l = d_and_l_re.search(r.text)
+        if d_and_l:
+            item['donations_and_legacies'] = d_and_l.group(1)
+        item['income'] = income_re.search(r.text).group(1)
+        item['end_date'] = end_date_re.search(r.text).group(1)
+        print(item)
+        scraperwiki.sqlite.save(['url'], item)
+    except AttributeError:
+        print('something went wrong')
+        continue
